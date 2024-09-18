@@ -10,4 +10,3 @@ shibboleth_idp_java_jetty_base_git_repo: https://git.shibboleth.net/git/java-idp
 shibboleth_idp_download_url: https://shibboleth.net/downloads/identity-provider/latest5/{{ shibboleth_idp_file }}.tar.gz
 shibboleth_idp_checksum_algorithm: sha256
 shibboleth_idp_checksum_url: "{{ shibboleth_idp_download_url }}.{{ shibboleth_idp_checksum_algorithm }}"
-java_opts: ""

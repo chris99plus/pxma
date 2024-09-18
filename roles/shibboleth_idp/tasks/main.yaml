@@ -20,7 +20,7 @@
     cmd: "java -jar {{ jetty_home }}/start.jar --add-module=http-forwarded"
     chdir: "{{ jetty_base }}"
     creates: "{{ jetty_base }}/start.d/http-forwarded.ini"
-  become_user: "{{ jetty_user }}"
+  become_user: "{{ jetty_user }}" # noqa: partial-become
 
 - name: Comment out https and ssl module
   ansible.builtin.replace:
@@ -89,7 +89,7 @@
         remote_src: true
 
     - name: Install shibboleth idp
-      ansible.builtin.command:
+      ansible.builtin.command: # noqa: no-changed-when
         cmd: |
           {{ shibboleth_idp_dir }}/bin/install.sh
             -t {{ shibboleth_idp_target_dir }}
@@ -97,7 +97,7 @@
             -e {{ shibboleth_idp_entity_id }}
             --scope {{ shibboleth_idp_scope }}
             --noPrompt
-      become_user: "{{ jetty_user }}"
+      become_user: "{{ jetty_user }}" # noqa: partial-become
 
     - name: Set owner for target directory
       ansible.builtin.file:
