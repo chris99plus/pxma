@@ -1,0 +1,32 @@
+---
+- name: Setup controller
+  hosts: controller
+
+  vars:
+    shibboleth_idp_domain: "idp.pxma.christians-software-schmiede.de"
+    shibboleth_idp_entity_id: "someEntityId"
+
+    nginx_remove_default_vhost: true
+
+    certbot_admin_email: "{{ lookup('env', 'PXMA_EMAIL') }}"
+    certbot_create_if_missing: true
+    certbot_create_standalone_stop_services:
+      - nginx
+    certbot_testmode: false
+    certbot_create_extra_args: "{{ '' if (production | default(false) | bool ) else '--staging' }}"
+    certbot_certs:
+      - domains:
+          - "{{ shibboleth_idp_domain }}"
+    certbot_auto_renew: true
+    certbot_auto_renew_user: "{{ ansible_user }}"
+    certbot_auto_renew_hour: "3"
+    certbot_auto_renew_minute: "0"
+    certbot_auto_renew_options: "--quiet"
+
+  roles:
+    - common
+    - fail2ban
+    - { role: jetty, tags: jetty }
+    - { role: geerlingguy.nginx, tags: nginx }
+    - { role: geerlingguy.certbot, tags: certbot }
+    - { role: shibboleth_idp, tags: shibboleth }

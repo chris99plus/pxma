@@ -1,0 +1,155 @@
+---
+
+- name: Git checkout java jetty base
+  ansible.builtin.git:
+    repo: "{{ shibboleth_idp_java_jetty_base_git_repo }}"
+    dest: "{{ ansible_env.HOME }}/java-idp-jetty-base"
+    version: "{{ shibboleth_idp_java_jetty_base_git_branch }}"
+
+- name: Copy jetty base directory
+  ansible.builtin.copy:
+    src: "{{ ansible_env.HOME }}/java-idp-jetty-base/src/main/resources/jetty-base/"
+    dest: "/home/{{ jetty_user }}/"
+    remote_src: true
+    owner: "{{ jetty_user }}"
+    group: "{{ jetty_group }}"
+    mode: u=rwx,g=rwx
+
+- name: Install jetty http-forwarded module
+  ansible.builtin.command:
+    cmd: "java -jar {{ jetty_home }}/start.jar --add-module=http-forwarded"
+    chdir: "{{ jetty_base }}"
+    creates: "{{ jetty_base }}/start.d/http-forwarded.ini"
+  become_user: "{{ jetty_user }}"
+
+- name: Comment out https and ssl module
+  ansible.builtin.replace:
+    dest: "{{ jetty_base }}/modules/idp.mod"
+    regexp: '^{{ item }}'
+    replace: '# {{ item }}'
+    owner: "{{ jetty_user }}"
+    group: "{{ jetty_group }}"
+  loop:
+    - https
+    - ssl
+
+- name: Set allowed http host and port
+  ansible.builtin.replace:
+    dest: "{{ jetty_base }}/start.d/idp.ini"
+    regexp: '^{{ item.key }}=.*$'
+    replace: '{{ item.key }}={{ item.value }}'
+    owner: "{{ jetty_user }}"
+    group: "{{ jetty_group }}"
+  loop:
+    - { key: jetty.http.host, value: 127.0.0.1 }
+    - { key: jetty.http.port, value: 8080 }
+
+- name: Remove installation
+  when: shibboleth_idp_force | default(false)
+  ansible.builtin.file:
+    path: "{{ shibboleth_idp_dir }}"
+    state: absent
+
+- name: Get shibboleth idp
+  ansible.builtin.stat:
+    path: "{{ shibboleth_idp_dir }}"
+  register: shibboleth_idp_dir_result
+
+- name: Install shibboleth idp
+  when: not shibboleth_idp_dir_result.stat.exists
+  block:
+
+    - name: Get shibboleth idp checksum
+      ansible.builtin.set_fact:
+        shibboleth_idp_checksum: "{{ item | regex_replace('\\s+.*', '') }}"
+      with_url: "{{ shibboleth_idp_checksum_url }}"
+
+    - name: Create temporary file
+      ansible.builtin.tempfile:
+        state: file
+        suffix: .tar.gz
+      register: shibboleth_idp_tmp_targz
+
+    - name: Get shibboleth idp
+      ansible.builtin.get_url:
+        url: "{{ shibboleth_idp_download_url }}"
+        dest: "{{ shibboleth_idp_tmp_targz.path }}"
+        checksum: "{{ shibboleth_idp_checksum_algorithm }}:{{ shibboleth_idp_checksum }}"
+        mode: u=rw,g=r,o=r
+      register: got_shibboleth_idp
+
+    - name: Exract shibboleth idp
+      become: true
+      ansible.builtin.unarchive:
+        src: "{{ shibboleth_idp_tmp_targz.path }}"
+        dest: "{{ shibboleth_idp_installation_dir }}"
+        owner: "{{ jetty_user }}"
+        group: "{{ jetty_group }}"
+        mode: "u=rwx,g=rwx"
+        remote_src: true
+
+    - name: Install shibboleth idp
+      ansible.builtin.command:
+        cmd: |
+          {{ shibboleth_idp_dir }}/bin/install.sh
+            -t {{ shibboleth_idp_target_dir }}
+            -h {{ shibboleth_idp_domain }}
+            -e {{ shibboleth_idp_entity_id }}
+            --scope {{ shibboleth_idp_scope }}
+            --noPrompt
+      become_user: "{{ jetty_user }}"
+
+    - name: Set owner for target directory
+      ansible.builtin.file:
+        path: "{{ shibboleth_idp_target_dir }}"
+        state: directory
+        owner: "{{ jetty_user }}"
+        group: "{{ jetty_group }}"
+        recurse: true
+
+    # FIXME: Is this needed?
+    # - name: Rebuild war file
+    #   ansible.builtin.command:
+    #     cmd: "{{ shibboleth_idp_target_dir }}/bin/build.sh"
+    #   become_user: "{{ jetty_user }}"
+
+# Create service
+- name: Create shibbolethidp service directory for additional configuration
+  ansible.builtin.file:
+    path: "/etc/systemd/system/shibbolethidp.service.d"
+    state: directory
+    mode: u=rwx,g=rx,o=rx
+  become: true
+
+- name: Set shibbolethidp service vars
+  ansible.builtin.template:
+    src: "shibbolethidp.conf.j2"
+    dest: "/etc/systemd/system/shibbolethidp.service.d/shibbolethidp.conf"
+    mode: u=rw,g=r,o=r
+  become: true
+  notify: Restart shibbolethidp
+
+- name: Configure shibbolethidp service
+  ansible.builtin.template:
+    src: "shibbolethidp.service.j2"
+    dest: "/etc/systemd/system/shibbolethidp.service"
+    mode: u=rw,g=r,o=r
+  become: true
+  notify: Restart shibbolethidp
+
+# Configure nginx
+- name: Set nginx config
+  ansible.builtin.template:
+    src: idp.conf.j2
+    dest: /etc/nginx/sites-available/{{ shibboleth_idp_domain }}
+    mode: ug=rw
+
+- name: Enable nginx site
+  ansible.builtin.file:
+    src: /etc/nginx/sites-available/{{ shibboleth_idp_domain }}
+    path: /etc/nginx/sites-enabled/{{ shibboleth_idp_domain }}
+    state: link
+  notify: Reload Nginx
+
+- name: Flush handlers after configuring
+  ansible.builtin.meta: flush_handlers

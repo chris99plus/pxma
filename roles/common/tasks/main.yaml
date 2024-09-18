@@ -1,0 +1,27 @@
+---
+
+# Upgrade the system
+- name: Update apt cache
+  become: true
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: 86400 # One day
+
+- name: Upgrade the system (apt)
+  become: true
+  when: not disable_upgrading | default(false)
+  ansible.builtin.apt:
+    upgrade: true
+    cache_valid_time: 86400 # One day
+
+- name: Check if reboot required
+  when: not disable_auto_restart | default(false)
+  ansible.builtin.stat:
+    path: /var/run/reboot-required
+  changed_when: not disable_auto_restart | default(false) and reboot_required_file.stat.exists == true
+  register: reboot_required_file
+
+- name: Reboot
+  throttle: 1
+  when: reboot_required_file.stat.exists
+  ansible.builtin.reboot:

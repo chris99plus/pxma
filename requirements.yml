@@ -1,0 +1,10 @@
+---
+collections:
+- name: hetzner.hcloud
+  version: ">=4.2.0"
+
+roles:
+  - name: geerlingguy.certbot
+    version: master
+  - name: geerlingguy.nginx
+    version: master

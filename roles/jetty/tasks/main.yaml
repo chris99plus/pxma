@@ -1,0 +1,113 @@
+# This role is based on:
+#   - https://github.com/jhu-library-applications/ansible-role-jetty/blob/master/tasks/main.yml
+---
+
+# Check java
+- name: Get java programm
+  ansible.builtin.command: "/bin/bash -c 'command -v java'"
+  register: java_command_result
+  changed_when: false
+  failed_when: java_command_result.rc != 0 and java_command_result.rc != 1
+
+- name: Install java
+  ansible.builtin.apt:
+    name:
+      - "{{ jetty_java_apt_package }}"
+  when: "java_command_result.rc == 1"
+
+- name: Get java version
+  ansible.builtin.shell: "/bin/bash -c 'java --version 2>&1'"
+  register: java_version_result
+  changed_when: false
+
+- name: Parse java version
+  ansible.builtin.set_fact:
+    java_version: "{{java_version_result.stdout
+      | regex_replace('^(.*)openjdk (?P<version>[0-9.]+)(.*)$|.*', '\\g<version>', multiline=true)
+      | replace('\n', '') }}"
+
+- name: Check java version
+  ansible.builtin.fail:
+    msg: "jetty requires java version {{ jetty_java_version }} or higher (found java {{ java_version }})"
+  when: "jetty_java_version is ansible.builtin.version(java_version, '>=')"
+
+# Add jetty user and group
+- name: Add jetty group
+  ansible.builtin.group:
+    name: "{{ jetty_group }}"
+    gid: "{{ jetty_group_gid | default(omit) }}"
+    state: present
+  become: true
+
+- name: Add jetty user
+  ansible.builtin.user:
+    name: "{{ jetty_user }}"
+    shell: "/bin/bash"
+    uid: "{{ jetty_user_uid | default(omit) }}"
+    group: "{{ jetty_group }}"
+  become: true
+
+# Install jetty
+- name: Remove installation
+  when: jetty_force | default(false)
+  ansible.builtin.file:
+    path: "{{ jetty_home }}"
+    state: absent
+
+- name: Get jetty
+  ansible.builtin.stat:
+    path: "{{ jetty_home }}"
+  register: jetty_home_result
+
+- name: Install jetty
+  when: not jetty_home_result.stat.exists
+  block:
+
+    - name: Get jetty checksum
+      ansible.builtin.set_fact:
+        jetty_checksum: "{{ item | regex_replace('\\s+.*', '') }}"
+      with_url: "{{ jetty_checksum_url }}"
+
+    - name: Create temporary file
+      ansible.builtin.tempfile:
+        state: file
+        suffix: .tar.gz
+      register: jetty_tmp_targz
+
+    - name: Get jetty
+      ansible.builtin.get_url:
+        url: "{{ jetty_download_url }}"
+        dest: "{{ jetty_tmp_targz.path }}"
+        checksum: "{{ jetty_checksum_algorithm }}:{{ jetty_checksum }}"
+        mode: u=rw,g=r,o=r
+      register: got_jetty
+
+    - name: Exract jetty
+      become: true
+      ansible.builtin.unarchive:
+        src: "{{ jetty_tmp_targz.path }}"
+        dest: "{{ jetty_installation_dir }}"
+        owner: "{{ jetty_user }}"
+        group: "{{ jetty_group }}"
+        mode: "u=rwx,g=rwx"
+        remote_src: true
+
+# Configuration
+- name: Create jetty base
+  ansible.builtin.file:
+    path: "{{ jetty_base }}"
+    state: directory
+    owner: "{{ jetty_user }}"
+    group: "{{ jetty_group }}"
+    mode: "u=rwx,g=rwx"
+
+- name: Ensure JETTY_HOME and JETTY_BASE is available in .bashrc
+  ansible.builtin.blockinfile:
+    dest: "/home/{{ jetty_user }}/.bashrc"
+    block: |
+      export JETTY_HOME="{{ jetty_home }}"
+      export JETTY_BASE="{{ jetty_base }}"
+    marker: '# {mark} ANSIBLE MANAGED BLOCK - jetty'
+    insertbefore: EOF
+    mode: u=rw,g=r,o=r
+    create: true

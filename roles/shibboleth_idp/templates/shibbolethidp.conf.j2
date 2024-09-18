@@ -1,0 +1,4 @@
+[Service]
+Environment="JETTY_HOME={{ jetty_home }}"
+Environment="JETTY_BASE={{ jetty_base }}"
+Environment='JAVA_OPTIONS={{ java_opts | replace("\n", " ") }}'

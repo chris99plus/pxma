@@ -1,0 +1,13 @@
+---
+# TODO: Another installation directory needs changes in configuration files (see: https://shibboleth.atlassian.net/wiki/spaces/IDP5/pages/3516104706/Jetty12)
+shibboleth_idp_target_dir: /opt/shibboleth-idp
+shibboleth_idp_scope: testScope
+shibboleth_idp_installation_dir: "{{ ansible_env.HOME }}"
+shibboleth_idp_file: shibboleth-identity-provider-5.1.3
+shibboleth_idp_dir: "{{ shibboleth_idp_installation_dir }}/{{ shibboleth_idp_file }}"
+shibboleth_idp_java_jetty_base_git_branch: 12
+shibboleth_idp_java_jetty_base_git_repo: https://git.shibboleth.net/git/java-idp-jetty-base
+shibboleth_idp_download_url: https://shibboleth.net/downloads/identity-provider/latest5/{{ shibboleth_idp_file }}.tar.gz
+shibboleth_idp_checksum_algorithm: sha256
+shibboleth_idp_checksum_url: "{{ shibboleth_idp_download_url }}.{{ shibboleth_idp_checksum_algorithm }}"
+java_opts: ""

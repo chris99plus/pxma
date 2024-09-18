@@ -1,0 +1,12 @@
+---
+jetty_java_version: '17'
+jetty_java_apt_package: openjdk-17-jre
+jetty_version: '12.0.13'
+jetty_installation_dir: "/opt"
+jetty_home: "{{ jetty_installation_dir }}/jetty-home-{{ jetty_version }}"
+jetty_base: "/home/jetty"
+jetty_download_url: "https://repo1.maven.org/maven2/org/eclipse/jetty/jetty-home/{{ jetty_version }}/jetty-home-{{ jetty_version }}.tar.gz"
+jetty_checksum_algorithm: "sha1"
+jetty_checksum_url: "{{ jetty_download_url }}.{{ jetty_checksum_algorithm }}"
+jetty_group: jetty
+jetty_user: jetty

@@ -1,0 +1,4 @@
+plugin: hcloud
+
+label_selector: "controller"
+group: "controller"
