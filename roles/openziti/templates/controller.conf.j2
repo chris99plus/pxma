@@ -1,0 +1,60 @@
+v: 3
+
+db:                     "{{ openziti_home }}/db/ctrl.db"
+
+identity:
+  cert:        "{{ openziti_pki_ctrl_cert }}"
+  server_cert: "{{ openziti_pki_ctrl_server_cert }}"
+  key:         "{{ openziti_pki_ctrl_key }}"
+  ca:          "{{ openziti_pki_ctrl_ca }}"
+
+trustDomain: "{{ openziti_trustdomain }}"
+
+ctrl:
+  options:
+    advertiseAddress: tls:{{ openziti_ctrl_advertised_address }}:{{ openziti_ctrl_advertised_port }}
+  listener:             tls:0.0.0.0:{{ openziti_ctrl_advertised_port }}
+
+healthChecks:
+  boltCheck:
+    interval: 30s
+    timeout: 20s
+    initialDelay: 30s
+
+edge:
+  api:
+    sessionTimeout: 30m
+    address: "{{ openziti_edge_advertised_address }}:{{ openziti_edge_advertised_port }}"
+  enrollment:
+    signingCert:
+      cert: "{{ openziti_pki_signer_cert }}"
+      key: "{{ openziti_pki_signer_key }}" 
+    edgeIdentity:
+      duration: 180m
+    edgeRouter:
+      duration: 180m
+
+web:
+  - name: client-management
+    bindPoints:
+      - interface: 0.0.0.0:{{ openziti_edge_advertised_port }}
+        address: {{ openziti_edge_advertised_address }}:{{ openziti_edge_advertised_port }}
+    identity:
+      ca:          "{{ openziti_pki_edge_ca }}"
+      key:         "{{ openziti_pki_edge_key }}"
+      server_cert: "{{ openziti_pki_edge_server_cert }}"
+      cert:        "{{ openziti_pki_edge_cert }}"
+      
+    options:
+      idleTimeout: 5000ms  #http timeouts, new
+      readTimeout: 5000ms
+      writeTimeout: 100000ms
+      minTLSVersion: TLS1.2
+      maxTLSVersion: TLS1.3
+    apis:
+      - binding: edge-management
+        options: { }
+      - binding: edge-client
+        options: { }
+      - binding: fabric
+        options: { }

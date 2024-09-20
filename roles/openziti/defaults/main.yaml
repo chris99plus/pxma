@@ -1,0 +1,43 @@
+---
+# This module requires openziti_advertisement_address to be specified
+openziti_user: openziti
+openziti_group: openziti
+openziti_network: "{{ inventory_hostname }}"
+openziti_home: "/home/{{ openziti_user }}/{{ openziti_network }}"
+openziti_bin: "/opt/openziti/bin"
+openziti_trustdomain: "pxma"
+
+# Admin
+openziti_admin_name: "Default Admin"
+openziti_admin_username: "admin"
+openziti_admin_password: "{{ openziti_ctrl_password | default(lookup('ansible.builtin.password', '/dev/null', chars=['ascii_letters', 'digits'], length=8)) }}"
+
+# Controller
+openziti_advertised_address: "{{ openziti_network }}"
+openziti_ctrl_advertised_address: "{{ openziti_advertised_address }}"
+openziti_ctrl_advertised_port: 6262
+openziti_edge_advertised_address: "{{ openziti_advertised_address }}"
+openziti_edge_advertised_port: 1280
+
+# PKI
+openziti_pki_root: "{{ openziti_home }}/pki"
+openziti_pki_country: "US"
+openziti_pki_organisation: "NetFoundry"
+openziti_pki_organisational_unit: "ADV-DEV"
+openziti_ca_file: "root"
+openziti_intermediate_file: "intermediate"
+openziti_server_file: "server"
+openziti_client_file: "client"
+
+openziti_pki_ctrl_server_cert: "{{ openziti_pki_root }}/{{ openziti_intermediate_file }}/certs/{{ openziti_server_file }}.chain.pem"
+openziti_pki_ctrl_cert: "{{ openziti_pki_root }}/{{ openziti_intermediate_file }}/certs/{{ openziti_client_file }}.cert"
+openziti_pki_ctrl_key: "{{ openziti_pki_root }}/{{ openziti_intermediate_file }}/keys/{{ openziti_server_file }}.key"
+openziti_pki_ctrl_ca: "{{ openziti_pki_root }}/{{ openziti_ca_file }}/certs/{{ openziti_ca_file }}.cert"
+
+openziti_pki_edge_server_cert: "{{ openziti_pki_ctrl_server_cert }}"
+openziti_pki_edge_cert: "{{ openziti_pki_ctrl_cert }}"
+openziti_pki_edge_key: "{{ openziti_pki_ctrl_key }}"
+openziti_pki_edge_ca: "{{ openziti_pki_ctrl_ca }}"
+
+openziti_pki_signer_cert: "{{ openziti_pki_root }}/{{ openziti_intermediate_file }}/certs/{{ openziti_intermediate_file }}.cert"
+openziti_pki_signer_key: "{{ openziti_pki_root }}/{{ openziti_intermediate_file }}/keys/{{ openziti_intermediate_file }}.key"
