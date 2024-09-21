@@ -7,7 +7,7 @@
     shibboleth_idp_entity_id: "someEntityId"
 
     openziti_ctrl_enabled: true
-    openziti_ctrl_domain: "ctrl.pxma.christians-software-schmiede.de"
+    openziti_advertised_address: "ctrl.pxma.christians-software-schmiede.de"
     openziti_network: "pxma"
 
     nginx_remove_default_vhost: true
@@ -21,7 +21,7 @@
     certbot_certs:
       - domains:
           - "{{ shibboleth_idp_domain }}"
-          - "{{ openziti_controller_domain }}"
+          - "{{ openziti_advertised_address }}"
     certbot_auto_renew: true
     certbot_auto_renew_user: "{{ ansible_user }}"
     certbot_auto_renew_hour: "3"

@@ -1,21 +1,6 @@
 ---
 # Setup based on this script: https://get.openziti.io/ziti-cli-functions.sh
 
-- name: Add openziti group
-  ansible.builtin.group:
-    name: "{{ openziti_group }}"
-    gid: "{{ openziti_group_gid | default(omit) }}"
-    state: present
-  become: true
-
-- name: Add openziti user
-  ansible.builtin.user:
-    name: "{{ openziti_user }}"
-    shell: "/bin/bash"
-    uid: "{{ openziti_user_uid | default(omit) }}"
-    group: "{{ openziti_group }}"
-  become: true
-
 - name: Add openziti apt repository
   ansible.builtin.deb822_repository:
     name: openziti
@@ -36,8 +21,6 @@
   ansible.builtin.file:
     path: "{{ openziti_home }}"
     state: directory
-    owner: "{{ openziti_user }}"
-    group: "{{ openziti_group }}"
     mode: ug=rwx,o-rwx
 
 - name: Install ziti cli

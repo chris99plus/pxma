@@ -3,8 +3,9 @@
 openziti_user: openziti
 openziti_group: openziti
 openziti_network: "{{ inventory_hostname }}"
-openziti_home: "/home/{{ openziti_user }}/{{ openziti_network }}"
-openziti_bin: "/opt/openziti/bin"
+openziti_home: "/var/lib/ziti-controller"
+openziti_opt: "/opt/openziti"
+openziti_bin: "{{ openziti_opt }}/bin"
 openziti_trustdomain: "pxma"
 
 # Admin
