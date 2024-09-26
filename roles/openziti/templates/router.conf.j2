@@ -20,7 +20,6 @@ link:
         outQueueSize:   4
 
 listeners:
-# bindings of edge and tunnel requires an "edge" section below
   - binding: edge
     address: tls:0.0.0.0:{{ openziti_router_port }}
     options:
@@ -29,9 +28,7 @@ listeners:
       getSessionTimeout: 60
   - binding: tunnel
     options:
-      mode: host #tproxy|host
-
-
+      mode: {{ openziti_router_mode }}
 
 edge:
   csr:
@@ -43,12 +40,16 @@ edge:
     sans:
       dns:
         - localhost
-# FIXME: Is the openziti_router_advertised_address an IP address or DNS name
+        {% if not (openziti_router_advertised_address | ansible.utils.ipaddr) -%}
+        - {{ openziti_router_advertised_address }}
+        {%- endif%}
 
       ip:
         - "127.0.0.1"
         - "::1"
+        {% if (openziti_router_advertised_address | ansible.utils.ipaddr) -%}
         - "{{ openziti_router_advertised_address }}"
+        {%- endif %}
 
 
 forwarder:

@@ -15,11 +15,17 @@
     name: ziti-router
     state: stopped
 
-- name: Create router config
+- name: Create edge router config
+  when: openziti_router_type == "edge"
   ansible.builtin.template:
     src: router.conf.j2
     dest: "{{ openziti_router_home }}/config.yml"
     mode: u=rw,go=r
+
+- name: Create fabric router config
+  when: openziti_router_type == "fabric"
+  ansible.builtin.fail:
+    msg: "fabric router not implemented yet!"
 
 - name: Get router key
   ansible.builtin.stat:
@@ -42,7 +48,6 @@
       ansible.builtin.tempfile:
         state: file
         suffix: .jwt
-        mode: u=rw,go-rwx
       register: _router_jwt_file
 
     # TODO: match router config to create settings

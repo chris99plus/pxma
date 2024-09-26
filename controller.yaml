@@ -9,8 +9,14 @@
     openziti_ctrl_enabled: true
     openziti_router_enabled: true
     openziti_advertised_address: "ctrl.pxma.christians-software-schmiede.de"
+    openziti_router_advertised_address: "{{ openziti_advertised_address }}"
     openziti_network: "pxma"
     openziti_admin_password: "{{ lookup('env', 'ZITI_ADMIN_PW') }}"
+
+    openziti_pki_country: "DE"
+    openziti_pki_province: "BW"
+    openziti_pki_locality: "Konstanz"
+    openziti_pki_organisation: "HTWG Konstanz"
 
     nginx_remove_default_vhost: true
 
