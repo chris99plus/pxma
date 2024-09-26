@@ -1,0 +1,60 @@
+v: 3
+
+identity:
+  cert:             "{{ openziti_router_home }}/{{ openziti_router_name }}.cert"
+  server_cert:      "{{ openziti_router_home }}/{{ openziti_router_name }}.server.chain.cert"
+  key:              "{{ openziti_router_home }}/{{ openziti_router_name }}.key"
+  ca:               "{{ openziti_router_home }}/{{ openziti_router_name }}.cas"
+
+ctrl:
+  endpoint:             tls:{{ openziti_ctrl_advertised_address }}:{{ openziti_ctrl_advertised_port }}
+
+link:
+  dialers:
+    - binding: transport
+  listeners:
+    - binding:          transport
+      bind:             tls:0.0.0.0:{{ openziti_router_bind_port }}
+      advertise:        tls:{{ openziti_router_advertised_address }}:{{ openziti_router_bind_port }}
+      options:
+        outQueueSize:   4
+
+listeners:
+# bindings of edge and tunnel requires an "edge" section below
+  - binding: edge
+    address: tls:0.0.0.0:{{ openziti_router_port }}
+    options:
+      advertise: pxma01:{{ openziti_router_port }}
+      connectTimeoutMs: 5000
+      getSessionTimeout: 60
+  - binding: tunnel
+    options:
+      mode: host #tproxy|host
+
+
+
+edge:
+  csr:
+    country: {{ openziti_pki_country }}
+    province: {{ openziti_pki_province }}
+    locality: {{ openziti_pki_locality }}
+    organization: {{ openziti_pki_organisation }}
+    organizationalUnit: {{ openziti_pki_organisational_unit }}
+    sans:
+      dns:
+        - localhost
+# FIXME: Is the openziti_router_advertised_address an IP address or DNS name
+
+      ip:
+        - "127.0.0.1"
+        - "::1"
+        - "{{ openziti_router_advertised_address }}"
+
+
+forwarder:
+  latencyProbeInterval: 0
+  xgressDialQueueLength: 1000
+  xgressDialWorkerCount: 128
+  linkDialQueueLength: 1000
+  linkDialWorkerCount: 32
+

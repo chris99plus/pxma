@@ -1,0 +1,81 @@
+---
+
+- name: Ensure ziti router home exist
+  ansible.builtin.file:
+    path: "{{ openziti_router_home }}"
+    state: directory
+    mode: ug=rwx,o-rwx
+
+- name: Ensure router installed
+  ansible.builtin.apt:
+    name: openziti-router
+
+- name: Get router service
+  ansible.builtin.service:
+    name: ziti-router
+    state: stopped
+
+- name: Create router config
+  ansible.builtin.template:
+    src: router.conf.j2
+    dest: "{{ openziti_router_home }}/config.yml"
+    mode: u=rw,go=r
+
+- name: Get router key
+  ansible.builtin.stat:
+    path: "{{ openziti_router_home }}/{{ openziti_router_name }}.key"
+  register: _router_key_file
+
+- name: Enroll router
+  when: not _router_key_file.stat.exists
+  block:
+ 
+    - name: Edge login
+      ansible.builtin.command:
+        cmd: |
+          {{ openziti_bin }}/ziti edge login {{ openziti_edge_advertised_address }}:{{ openziti_edge_advertised_port }}
+            --yes
+            -u '{{ openziti_admin_username }}'
+            -p '{{ openziti_admin_password }}'
+
+    - name: Create router enrollment jwt tmp file
+      ansible.builtin.tempfile:
+        state: file
+        suffix: .jwt
+        mode: u=rw,go-rwx
+      register: _router_jwt_file
+
+    # TODO: match router config to create settings
+    - name: Edge create router
+      ansible.builtin.command:
+        cmd: |
+          {{ openziti_bin }}/ziti edge create edge-router '{{ openziti_router_name }}'
+            --jwt-output-file '{{ _router_jwt_file.path }}'
+            --tunneler-enabled
+
+    - name: Edge logout
+      ansible.builtin.command:
+        cmd: "{{ openziti_bin }}/ziti edge logout"
+
+    - name: Enroll router
+      ansible.builtin.command:
+        cmd: |
+          {{ openziti_bin }}/ziti router enroll '{{ openziti_router_home }}/config.yml'
+            --jwt '{{ _router_jwt_file.path }}'
+        chdir: "{{ openziti_router_home }}"
+
+- name: Ensure openziti router home is accessable from service
+  ansible.builtin.file:
+    path: "{{ openziti_router_home }}"
+    state: directory
+    mode: u=rwx,go-rwx
+    owner: 65534
+    group: 65534
+    recurse: true
+
+- name: Start router service
+  ansible.builtin.systemd_service:
+    name: ziti-router
+    state: started
+    daemon-reload: true
+    enabled: true

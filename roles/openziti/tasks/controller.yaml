@@ -1,5 +1,11 @@
 ---
 
+- name: Ensure ziti ctrl home exist
+  ansible.builtin.file:
+    path: "{{ openziti_ctrl_home }}"
+    state: directory
+    mode: ug=rwx,o-rwx
+
 - name: Ensure controller installed
   ansible.builtin.apt:
     name: openziti-controller
@@ -76,14 +82,14 @@
 
 - name: Create db directory
   ansible.builtin.file:
-    path: "{{ openziti_home }}/db"
+    path: "{{ openziti_ctrl_home }}/db"
     state: directory
     mode: ug=rwx,o-rwx
 
 - name: Generate controller config
   ansible.builtin.template:
     src: controller.conf.j2
-    dest: "{{ openziti_home }}/ctrl.conf.yaml"
+    dest: "{{ openziti_ctrl_home }}/config.yaml"
     mode: ug=rw,o-rw
 
 - name: Generate controller override service config
@@ -97,15 +103,15 @@
 - name: Initialze controller
   ansible.builtin.command:
     cmd: |
-      {{ openziti_bin }}/ziti controller edge init {{ openziti_home }}/ctrl.conf.yaml
+      {{ openziti_bin }}/ziti controller edge init {{ openziti_ctrl_home }}/config.yaml
         -u '{{ openziti_admin_username }}'
         -n '{{ openziti_admin_name }}'
         -p '{{ openziti_admin_password }}'
-    creates: "{{ openziti_home }}/db/ctrl.db"
+    creates: "{{ openziti_ctrl_home }}/db/ctrl.db"
 
-- name: Ensure openziti home is accessable from service
+- name: Ensure openziti ctrl home is accessable from service
   ansible.builtin.file:
-    path: "{{ openziti_home }}"
+    path: "{{ openziti_ctrl_home }}"
     state: directory
     mode: u=rwx,go-rwx
     owner: 65534

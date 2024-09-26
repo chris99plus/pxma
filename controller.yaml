@@ -7,8 +7,10 @@
     shibboleth_idp_entity_id: "someEntityId"
 
     openziti_ctrl_enabled: true
+    openziti_router_enabled: true
     openziti_advertised_address: "ctrl.pxma.christians-software-schmiede.de"
     openziti_network: "pxma"
+    openziti_admin_password: "{{ lookup('env', 'ZITI_ADMIN_PW') }}"
 
     nginx_remove_default_vhost: true
 

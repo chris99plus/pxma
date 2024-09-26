@@ -17,12 +17,6 @@
   ansible.builtin.apt:
     update_cache: true
 
-- name: Ensure ziti home exist
-  ansible.builtin.file:
-    path: "{{ openziti_home }}"
-    state: directory
-    mode: ug=rwx,o-rwx
-
 - name: Install ziti cli
   ansible.builtin.apt:
     name: openziti
@@ -30,3 +24,7 @@
 - name: Setup controller
   when: openziti_ctrl_enabled | default(false)
   ansible.builtin.include_tasks: controller.yaml
+
+- name: Setup router
+  when: openziti_router_enabled | default(false)
+  ansible.builtin.include_tasks: router.yaml

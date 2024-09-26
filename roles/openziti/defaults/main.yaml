@@ -1,9 +1,6 @@
 ---
 # This module requires openziti_advertisement_address to be specified
-openziti_user: openziti
-openziti_group: openziti
 openziti_network: "{{ inventory_hostname }}"
-openziti_home: "/var/lib/ziti-controller"
 openziti_opt: "/opt/openziti"
 openziti_bin: "{{ openziti_opt }}/bin"
 openziti_trustdomain: "pxma"
@@ -14,6 +11,7 @@ openziti_admin_username: "admin"
 openziti_admin_password: "{{ openziti_ctrl_password | default(lookup('ansible.builtin.password', '/dev/null', chars=['ascii_letters', 'digits'], length=8)) }}"
 
 # Controller
+openziti_ctrl_home: "/var/lib/private/ziti-controller"
 openziti_advertised_address: "{{ openziti_network }}"
 openziti_ctrl_advertised_address: "{{ openziti_advertised_address }}"
 openziti_ctrl_advertised_port: 6262
@@ -21,10 +19,12 @@ openziti_edge_advertised_address: "{{ openziti_advertised_address }}"
 openziti_edge_advertised_port: 1280
 
 # PKI
-openziti_pki_root: "{{ openziti_home }}/pki"
+openziti_pki_root: "{{ openziti_ctrl_home }}/pki"
 openziti_pki_country: "US"
+openziti_pki_province: "NC"
+openziti_pki_locality: "Charlotte"
 openziti_pki_organisation: "NetFoundry"
-openziti_pki_organisational_unit: "ADV-DEV"
+openziti_pki_organisational_unit: "Ziti"
 openziti_ca_file: "root"
 openziti_intermediate_file: "intermediate"
 openziti_server_file: "server"
@@ -42,3 +42,12 @@ openziti_pki_edge_ca: "{{ openziti_pki_ctrl_ca }}"
 
 openziti_pki_signer_cert: "{{ openziti_pki_root }}/{{ openziti_intermediate_file }}/certs/{{ openziti_intermediate_file }}.cert"
 openziti_pki_signer_key: "{{ openziti_pki_root }}/{{ openziti_intermediate_file }}/keys/{{ openziti_intermediate_file }}.key"
+
+# Router
+openziti_router_home: "/var/lib/private/ziti-router"
+openziti_router_name: "{{ inventory_hostname }}-router"
+openziti_router_advertised_address: "{{ ansible_default_ipv4.address }}"
+openziti_router_type: "edge" # TODO: Not implemented! ["edge", "fabric"]
+openziti_router_mode: "host" # TODO: Not implemented! only used on edge routers: ["none", "host", "tproxy", "proxy"]
+openziti_router_port: 3022
+openziti_router_bind_port: "{{ openziti_router_port }}"

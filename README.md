@@ -25,6 +25,7 @@ copy the following content and fill in your data:
 export HCLOUD_TOKEN="hcloud_token"
 export HCLOUD_SSH_KEY="ssh_key"
 export PXMA_EMAIL="your_email_for_letsencrypt"
+export ZITI_ADMIN_PW="admin_passwd"
 
 ```
 
