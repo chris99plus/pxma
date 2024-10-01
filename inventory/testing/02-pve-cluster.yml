@@ -1,0 +1,9 @@
+# Proxmox VE Cluster
+pve:
+  hosts:
+    pxma-01:
+      ansible_python_interpreter: "/usr/bin/python3"
+
+vms:
+  hosts:
+    vm01.pxma:

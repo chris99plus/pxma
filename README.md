@@ -3,6 +3,41 @@ Zero trust with OpenZiti experiments
 
 ## Preperation
 
+### SSH
+
+Create ssh config in `~/.ssh/config`:
+
+```
+Host pxma
+   HostName pxma-01.test.rz.htwg-konstanz.de
+   IdentityFile ~/.ssh/pxma/id_ed25519
+   User root
+
+Host pxma-*
+   IdentityFile ~/.ssh/pxma/id_ed25519
+   User root
+
+Host pxma-01
+   HostName pxma-01.test.rz.htwg-konstanz.de
+
+Host pxma-02
+   HostName pxma-02.test.rz.htwg-konstanz.de
+
+Host pxma-03
+   HostName pxma-03.test.rz.htwg-konstanz.de
+
+Host pxma-04
+   HostName pxma-04.test.rz.htwg-konstanz.de
+
+Host pxma-05
+   HostName pxma-05.test.rz.htwg-konstanz.de
+
+Host vm01.pxma
+   ProxyJump pxma
+   HostName 10.0.0.10
+   User debian
+```
+
 ### Packages
 
 To use this package you need to install Ansible and hcloud cli programm. Make sure you have the required python and ansible roles and packages installed.

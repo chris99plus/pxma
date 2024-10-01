@@ -12,7 +12,13 @@
     signed_by: https://get.openziti.io/tun/package-repos.gpg
   register: openziti_apt_repo
 
+- name: Update apt index (forced) # noqa: no-handler
+  when: openziti_apt_repo.changed
+  ansible.builtin.apt:
+    update_cache: true
+
 - name: Update apt index
+  when: not openziti_apt_repo.changed
   ansible.builtin.apt:
     update_cache: true
     cache_valid_time: 86400 # one day
