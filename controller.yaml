@@ -8,6 +8,7 @@
 
     openziti_ctrl_enabled: true
     openziti_router_enabled: true
+    openziti_deploy_console: true
     openziti_advertised_address: "ctrl.pxma.christians-software-schmiede.de"
     openziti_router_advertised_address: "{{ openziti_advertised_address }}"
     openziti_network: "pxma"

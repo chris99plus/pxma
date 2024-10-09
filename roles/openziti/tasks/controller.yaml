@@ -86,6 +86,14 @@
     state: directory
     mode: ug=rwx,o-rwx
 
+- name: Enable ziti console
+  when: openziti_deploy_console
+  block:
+
+    - name: Ensure console installed
+      ansible.builtin.apt:
+        name: openziti-console
+
 - name: Generate controller config
   ansible.builtin.template:
     src: controller.conf.j2

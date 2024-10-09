@@ -23,7 +23,7 @@ listeners:
   - binding: edge
     address: tls:0.0.0.0:{{ openziti_router_port }}
     options:
-      advertise: pxma01:{{ openziti_router_port }}
+      advertise: {{ openziti_router_advertised_address }}:{{ openziti_router_port }}
       connectTimeoutMs: 5000
       getSessionTimeout: 60
   - binding: tunnel

@@ -58,3 +58,9 @@ web:
         options: { }
       - binding: fabric
         options: { }
+      {% if openziti_deploy_console -%}
+      - binding: zac
+        options:
+          location: {{ openziti_opt }}/share/console
+          indexFile: index.html
+      {%- endif %}

@@ -17,6 +17,7 @@ openziti_ctrl_advertised_address: "{{ openziti_advertised_address }}"
 openziti_ctrl_advertised_port: 6262
 openziti_edge_advertised_address: "{{ openziti_advertised_address }}"
 openziti_edge_advertised_port: 1280
+openziti_deploy_console: false
 
 # PKI
 openziti_pki_root: "{{ openziti_ctrl_home }}/pki"

@@ -1,5 +1,11 @@
 ---
 
+- name: Install openldap
+  ansible.builtin.apt:
+    name: 
+      - slapd
+      - ldap-utils
+
 - name: Git checkout java jetty base
   ansible.builtin.git:
     repo: "{{ shibboleth_idp_java_jetty_base_git_repo }}"
