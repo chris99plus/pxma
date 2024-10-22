@@ -1,38 +1,38 @@
 ---
 
 - name: Ensure ziti router home exist
+  become: true
   ansible.builtin.file:
     path: "{{ openziti_router_home }}"
     state: directory
     mode: ug=rwx,o-rwx
 
 - name: Ensure router installed
+  become: true
   ansible.builtin.apt:
     name: openziti-router
 
 - name: Get router service
+  become: true
   ansible.builtin.service:
     name: ziti-router
     state: stopped
 
-- name: Create edge router config
-  when: openziti_router_type == "edge"
+- name: Create router config
+  become: true
   ansible.builtin.template:
     src: router.conf.j2
     dest: "{{ openziti_router_home }}/config.yml"
     mode: u=rw,go=r
 
-- name: Create fabric router config
-  when: openziti_router_type == "fabric"
-  ansible.builtin.fail:
-    msg: "fabric router not implemented yet!"
-
 - name: Get router key
+  become: true
   ansible.builtin.stat:
     path: "{{ openziti_router_home }}/{{ openziti_router_name }}.key"
   register: _router_key_file
 
 - name: Enroll router
+  become: true
   when: not _router_key_file.stat.exists
   block:
  
@@ -56,7 +56,7 @@
         cmd: |
           {{ openziti_bin }}/ziti edge create edge-router '{{ openziti_router_name }}'
             --jwt-output-file '{{ _router_jwt_file.path }}'
-            --tunneler-enabled
+            {% if openziti_router_tunnel_enabled %}--tunneler-enabled{% endif %}
 
     - name: Edge logout
       ansible.builtin.command:
@@ -70,6 +70,7 @@
         chdir: "{{ openziti_router_home }}"
 
 - name: Ensure openziti router home is accessable from service
+  become: true
   ansible.builtin.file:
     path: "{{ openziti_router_home }}"
     state: directory
@@ -79,6 +80,7 @@
     recurse: true
 
 - name: Start router service
+  become: true
   ansible.builtin.systemd_service:
     name: ziti-router
     state: started

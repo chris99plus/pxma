@@ -1,32 +1,15 @@
 ---
-# - name: Setup PVE
-#   hosts: pve
-# 
-#   tasks:
-# 
-#     - name: Ensure proxmoxer is installed
-#       ansible.builtin.apt:
-#         name:
-#           - python3-proxmoxer
-#         update_cache: true
-#         cache_valid_time: 86400 # One day
-# 
-#     # - name: Get VM informations
-#     #   community.general.proxmox_vm_info:
-#     #     api_host: "{{ inventory_hostname }}"
-#     #     api_password: "{{ ansible_password }}"
-#     #     api_user: "{{ ansible_user }}@pam"
-
-- name: Setup VMs
+- name: Setup EMail VM
   hosts: vms
 
   vars:
     openziti_router_enabled: true
     openziti_advertised_address: "ctrl.pxma.christians-software-schmiede.de"
     openziti_admin_password: "{{ lookup('env', 'ZITI_ADMIN_PW') }}"
-
+    openziti_router_link_listener_enabled: false
+    openziti_router_groups: ["pxma"]
 
   roles:
     - { name: common }
-    # - { name: openziti, tags: openziti }
+    - { name: openziti, tags: openziti }
     - { name: greenmail, tags: greenmail }

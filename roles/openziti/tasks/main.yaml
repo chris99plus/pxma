@@ -2,6 +2,7 @@
 # Setup based on this script: https://get.openziti.io/ziti-cli-functions.sh
 
 - name: Add openziti apt repository
+  become: true
   ansible.builtin.deb822_repository:
     name: openziti
     types: deb
@@ -13,17 +14,20 @@
   register: openziti_apt_repo
 
 - name: Update apt index (forced) # noqa: no-handler
+  become: true
   when: openziti_apt_repo.changed
   ansible.builtin.apt:
     update_cache: true
 
 - name: Update apt index
+  become: true
   when: not openziti_apt_repo.changed
   ansible.builtin.apt:
     update_cache: true
     cache_valid_time: 86400 # one day
 
 - name: Install ziti cli
+  become: true
   ansible.builtin.apt:
     name: openziti
 

@@ -10,14 +10,21 @@ ctrl:
   endpoint:             tls:{{ openziti_ctrl_advertised_address }}:{{ openziti_ctrl_advertised_port }}
 
 link:
+{% if openziti_router_link_dialer_enabled %}
   dialers:
     - binding: transport
+      groups: {{ openziti_router_groups }}
+{%- endif %}
+
+{% if openziti_router_link_listener_enabled %}
   listeners:
     - binding:          transport
       bind:             tls:0.0.0.0:{{ openziti_router_bind_port }}
       advertise:        tls:{{ openziti_router_advertised_address }}:{{ openziti_router_bind_port }}
+      groups: {{ openziti_router_groups }}
       options:
         outQueueSize:   4
+{%- endif %}
 
 listeners:
   - binding: edge
@@ -26,9 +33,12 @@ listeners:
       advertise: {{ openziti_router_advertised_address }}:{{ openziti_router_port }}
       connectTimeoutMs: 5000
       getSessionTimeout: 60
+
+{% if openziti_router_tunnel_enabled %}
   - binding: tunnel
     options:
       mode: {{ openziti_router_mode }}
+{% endif %}
 
 edge:
   csr:
