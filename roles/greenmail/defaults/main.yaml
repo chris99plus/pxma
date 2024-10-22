@@ -1,0 +1,7 @@
+---
+greenmail_java_version: '17'
+greenmail_java_apt_package: openjdk-17-jre
+greenmail_standalone_download_url: https://repo1.maven.org/maven2/com/icegreen/greenmail-standalone/2.1.0/greenmail-standalone-2.1.0.jar
+greenmail_checksum_algorithm: "sha1"
+greenmail_checksum_url: "{{ greenmail_standalone_download_url }}.{{ greenmail_checksum_algorithm }}"
+greenmail_standalone_jar: "{{ ansible_env.HOME }}/greenmail.jar"

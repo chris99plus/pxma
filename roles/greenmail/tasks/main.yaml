@@ -1,0 +1,54 @@
+---
+
+# Check java
+- name: Get java programm
+  ansible.builtin.command: "/bin/bash -c 'command -v java'"
+  register: java_command_result
+  changed_when: false
+  failed_when: java_command_result.rc != 0 and java_command_result.rc != 1
+
+- name: Install java
+  become: true
+  ansible.builtin.apt:
+    name:
+      - "{{ greenmail_java_apt_package }}"
+  when: "java_command_result.rc == 1"
+
+- name: Get java version
+  ansible.builtin.shell: "/bin/bash -c 'java --version 2>&1'"
+  register: java_version_result
+  changed_when: false
+
+- name: Parse java version
+  ansible.builtin.set_fact:
+    java_version: "{{java_version_result.stdout
+      | regex_replace('^(.*)openjdk (?P<version>[0-9.]+)(.*)$|.*', '\\g<version>', multiline=true)
+      | replace('\n', '') }}"
+
+- name: Check java version
+  ansible.builtin.fail:
+    msg: "greenmail requires java version {{ greenmail_java_version }} or higher (found java {{ java_version }})"
+  when: "greenmail_java_version is ansible.builtin.version(java_version, '>=')"
+
+# Download greenmail
+- name: Get greenmail checksum
+  ansible.builtin.set_fact:
+    greenmail_checksum: "{{ item | regex_replace('\\s+.*', '') }}"
+  with_url: "{{ greenmail_checksum_url }}"
+
+- name: Get greenmail
+  ansible.builtin.get_url:
+    url: "{{ greenmail_standalone_download_url }}"
+    dest: "{{ ansible_env.HOME }}/greenmail.jar"
+    checksum: "{{ greenmail_checksum_algorithm }}:{{ greenmail_checksum }}"
+    mode: u=rw,g=r,o=r
+  register: got_greenmail
+
+- name: Create greenmail unit file
+  become: true
+  ansible.builtin.template:
+    src: greenmail.service.j2
+    dest: /lib/systemd/system/greenmail.service
+    mode: u=rw,og=r
+  notify:
+    - Reload systemctl

@@ -19,7 +19,6 @@
 
 - name: Setup VMs
   hosts: vms
-  become: true
 
   vars:
     openziti_router_enabled: true
@@ -29,4 +28,5 @@
 
   roles:
     - { name: common }
-    - { name: openziti, tags: openziti }
+    # - { name: openziti, tags: openziti }
+    - { name: greenmail, tags: greenmail }

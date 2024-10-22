@@ -1,0 +1,11 @@
+[Unit]
+Description=GreenMail
+Requires=network.target
+After=multi-user.target network.target
+
+[Service]
+ExecStart=/usr/bin/java -Dgreenmail.setup.all -Dgreenmail.users="test1:1234@pxma.local" -jar {{ greenmail_standalone_jar }}
+Type=simple
+
+[Install]
+WantedBy=multi-user.target
