@@ -51,9 +51,18 @@ openziti_router_advertised_address: "{{ ansible_default_ipv4.address }}"
 # openziti_router_type: "edge" # TODO: Not implemented! ["edge", "fabric"]
 openziti_router_mode: "host" # only on edge routers (type=edge): ["none", "host", "tproxy", "proxy"]
 openziti_router_port: 3022
-openziti_router_bind_port: "{{ openziti_router_port }}"
-openziti_router_edge_enabled: true
 openziti_router_tunnel_enabled: true
-openziti_router_link_listener_enabled: true
-openziti_router_link_dialer_enabled: true
-openziti_router_groups: ["default"]
+openziti_router_links:
+  dialers:
+    - groups: ["default"]
+  listeners:
+    - bind: "tls:0.0.0.0:{{ openziti_router_port }}"
+      advertise: "tls:{{ openziti_router_advertised_address }}:{{ openziti_router_port }}"
+      groups: ["default"]
+
+# openziti_sans:
+#   dns:
+#     - localhost
+#   ip:
+#     - "127.0.0.1"
+#     - "::1"

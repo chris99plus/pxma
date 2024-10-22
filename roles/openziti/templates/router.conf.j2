@@ -10,20 +10,24 @@ ctrl:
   endpoint:             tls:{{ openziti_ctrl_advertised_address }}:{{ openziti_ctrl_advertised_port }}
 
 link:
-{% if openziti_router_link_dialer_enabled %}
+{% if openziti_router_links.dialers is defined -%}
   dialers:
+{% for dialer in openziti_router_links.dialers %} 
     - binding: transport
-      groups: {{ openziti_router_groups }}
+      groups: {{ dialer.groups }}
+{% endfor %}
 {%- endif %}
 
-{% if openziti_router_link_listener_enabled %}
+{% if openziti_router_links.listeners is defined -%}
   listeners:
+{% for listener in openziti_router_links.listeners %}
     - binding:          transport
-      bind:             tls:0.0.0.0:{{ openziti_router_bind_port }}
-      advertise:        tls:{{ openziti_router_advertised_address }}:{{ openziti_router_bind_port }}
-      groups: {{ openziti_router_groups }}
+      bind:             {{ listener.bind }}
+      advertise:        {{ listener.advertise }}
+      groups: {{ listener.groups }}
       options:
         outQueueSize:   4
+{% endfor %}
 {%- endif %}
 
 listeners:
@@ -47,6 +51,9 @@ edge:
     locality: {{ openziti_pki_locality }}
     organization: {{ openziti_pki_organisation }}
     organizationalUnit: {{ openziti_pki_organisational_unit }}
+{% if openziti_sans is defined %}
+    sans: {{ openziti_sans }}
+{% else %}
     sans:
       dns:
         - localhost
@@ -60,6 +67,7 @@ edge:
         {% if (openziti_router_advertised_address | ansible.utils.ipaddr) -%}
         - "{{ openziti_router_advertised_address }}"
         {%- endif %}
+{% endif %}
 
 
 forwarder:

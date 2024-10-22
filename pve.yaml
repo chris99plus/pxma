@@ -1,15 +1,44 @@
 ---
 - name: Setup EMail VM
-  hosts: vms
+  hosts: email
 
   vars:
     openziti_router_enabled: true
     openziti_advertised_address: "ctrl.pxma.christians-software-schmiede.de"
     openziti_admin_password: "{{ lookup('env', 'ZITI_ADMIN_PW') }}"
-    openziti_router_link_listener_enabled: false
-    openziti_router_groups: ["pxma"]
+    openziti_router_links:
+      dialers:
+        - groups: ["pxma"]
 
   roles:
     - { name: common }
     - { name: openziti, tags: openziti }
     - { name: greenmail, tags: greenmail }
+
+
+- name: Setup Edge Router VMs
+  hosts: edgerouter
+
+  vars:
+    openziti_router_enabled: true
+    openziti_advertised_address: "ctrl.pxma.christians-software-schmiede.de"
+    openziti_admin_password: "{{ lookup('env', 'ZITI_ADMIN_PW') }}"
+    openziti_router_tunnel_enabled: false
+    openziti_router_links:
+      dialers:
+        - groups: ["default", "pxma"]
+      listeners:
+        - bind: "tls:0.0.0.0:3022"
+          advertise: "tls:10.10.0.10:3022"
+          groups: ["pxma"]
+    openziti_sans:
+      dns:
+        - localhost
+      ip:
+        - "127.0.0.1"
+        - "::1"
+        - "10.10.0.10"
+
+  roles:
+    - { name: common }
+    - { name: openziti, tags: openziti }

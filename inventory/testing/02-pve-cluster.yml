@@ -1,9 +1,8 @@
 # Proxmox VE Cluster
-pve:
-  hosts:
-    pxma-01:
-      ansible_python_interpreter: "/usr/bin/python3"
-
-vms:
+email:
   hosts:
     vm202.pxma:
+
+edgerouter:
+  hosts:
+    vm201.pxma:
