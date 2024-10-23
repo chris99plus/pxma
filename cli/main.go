@@ -69,6 +69,10 @@ func main() {
 		fmt.Printf("ROUTER %s CONNECTED: %s\n", name, addr)
 	})
 
+	ctx.Events().AddRouterDisconnectedListener(func(ztx ziti.Context, name, addr string) {
+		fmt.Printf("ROUTER %s DISCONNECTED: %s\n", name, addr)
+	})
+
 	err = ctx.Authenticate()
 	if err != nil {
 		panic(err)
