@@ -10,15 +10,15 @@ ctrl:
   endpoint:             tls:{{ openziti_ctrl_advertised_address }}:{{ openziti_ctrl_advertised_port }}
 
 link:
-{% if openziti_router_links.dialers is defined -%}
+{% if openziti_router_links.dialers is defined %}
   dialers:
-{% for dialer in openziti_router_links.dialers %} 
+{%- for dialer in openziti_router_links.dialers %} 
     - binding: transport
       groups: {{ dialer.groups }}
 {% endfor %}
 {%- endif %}
 
-{% if openziti_router_links.listeners is defined -%}
+{% if openziti_router_links.listeners is defined %}
   listeners:
 {% for listener in openziti_router_links.listeners %}
     - binding:          transport

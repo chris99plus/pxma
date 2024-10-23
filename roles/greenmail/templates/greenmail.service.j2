@@ -4,7 +4,7 @@ Requires=network.target
 After=multi-user.target network.target
 
 [Service]
-ExecStart=/usr/bin/java -Dgreenmail.setup.all -Dgreenmail.users="test1:1234@pxma.local" -jar {{ greenmail_standalone_jar }}
+ExecStart=/usr/bin/java -Dgreenmail.setup.all -Dgreenmail.hostname=0.0.0.0 -Dgreenmail.verbose -Dgreenmail.users="test1:1234@pxma.local" -jar {{ greenmail_standalone_jar }}
 Type=simple
 
 [Install]

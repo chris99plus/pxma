@@ -16,7 +16,7 @@ import (
 
 func main() {
 
-	cfg, err := ziti.NewConfigFromFile("/home/chris/Downloads/CliTest.json")
+	cfg, err := ziti.NewConfigFromFile("/home/chris/Downloads/testssh.json")
 	if err != nil {
 		panic(fmt.Sprintf("Config error: %s", err))
 	}
@@ -74,8 +74,8 @@ func main() {
 		panic(err)
 	}
 
-	foundSvc, ok := ctx.GetService("vm01ssh")
-	fmt.Printf("%s, %t", *foundSvc.ID, ok)
+	foundSvc, ok := ctx.GetService("SMTPEmail")
+	fmt.Printf("%s, %t\n", *foundSvc.ID, ok)
 
 	for _, el := range foundSvc.PostureQueries {
 		fmt.Printf("Posture Queries\n\tIsPassing: %t\n", *el.IsPassing)
@@ -83,37 +83,85 @@ func main() {
 	}
 	fmt.Println(foundSvc.PostureQueries)
 
-	fmt.Println("Dialing vm01ssh service")
+	go func() {
 
-	dialOptions := &ziti.DialOptions{
-		ConnectTimeout: 0,
-		Identity:       "pxma01 Router",
-		AppData:        nil,
-	}
-	serviceConn, err := ctx.DialWithOptions("vm01ssh", dialOptions)
+		clientLn, err := net.Listen("tcp", ":1443")
+		if err != nil {
+			panic(err)
+		}
+
+		fmt.Printf("Waiting on %s for a TCP connection to be established\n", clientLn.Addr().String())
+
+		for {
+			clientConn, err := clientLn.Accept()
+			if err != nil {
+				panic(err)
+			}
+
+			fmt.Printf("Accepted connection from %s\n", clientConn.RemoteAddr().String())
+
+			fmt.Println("Dialing IMAP Email service")
+			serviceConn, err := ctx.Dial("IMAPEmail")
+			// serviceConn, err := ctx.DialWithOptions("SMTP Email", dialOptions)
+
+			// serviceConn, err := ctx.Dial("vm01ssh")
+			if err != nil {
+				panic(err)
+			}
+
+			go io.Copy(serviceConn, clientConn)
+			io.Copy(clientConn, serviceConn)
+
+			// serviceConn.Close()
+			// clientConn.Close()
+		}
+	}()
+	// dialOptions := &ziti.DialOptions{
+	// 	ConnectTimeout: 0,
+	// 	Identity:       "vm202.pxma Router",
+	// 	AppData:        nil,
+	// }
+
+	// serviceConn, err := ctx.DialWithOptions("SMTP Email", dialOptions)
 
 	// serviceConn, err := ctx.Dial("vm01ssh")
-	if err != nil {
-		panic(err)
-	}
-	defer serviceConn.Close()
 
-	clientLn, err := net.Listen("tcp", ":3030")
+	clientLn, err := net.Listen("tcp", ":2525")
 	if err != nil {
 		panic(err)
 	}
 
-	fmt.Printf("Waiting on %s for a TCP connection to be established", clientLn.Addr().String())
+	fmt.Printf("Waiting on %s for a TCP connection to be established\n", clientLn.Addr().String())
 
-	clientConn, err := clientLn.Accept()
-	if err != nil {
-		panic(err)
+	for {
+		clientConn, err := clientLn.Accept()
+		if err != nil {
+			panic(err)
+		}
+
+		fmt.Printf("Accepted connection from %s\n", clientConn.RemoteAddr().String())
+
+		fmt.Println("Dialing SMTP Email service")
+
+		serviceConn, err := ctx.Dial("SMTPEmail")
+		if err != nil {
+			panic(err)
+		}
+
+		go func() {
+			_, err := io.Copy(serviceConn, clientConn)
+			if err != nil {
+				fmt.Printf("SMTP copy error: %s\n", err)
+			}
+		}()
+		_, err = io.Copy(clientConn, serviceConn)
+		if err != nil {
+			fmt.Printf("SMTP copy error: %s\n", err)
+		}
+
+		// serviceConn.Close()
+		// clientConn.Close()
 	}
-
-	fmt.Printf("Accepted connection from %s\n", clientConn.RemoteAddr().String())
-
-	go io.Copy(serviceConn, clientConn)
-	io.Copy(clientConn, serviceConn)
 	// mfa, err := client.API.CurrentIdentity.DetailMfa(current_identity.NewDetailMfaParams(), session)
 	// if err != nil {
 	// panic(err)

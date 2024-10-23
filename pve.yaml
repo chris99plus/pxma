@@ -24,6 +24,7 @@
     openziti_advertised_address: "ctrl.pxma.christians-software-schmiede.de"
     openziti_admin_password: "{{ lookup('env', 'ZITI_ADMIN_PW') }}"
     openziti_router_tunnel_enabled: false
+    openziti_router_advertised_address: "10.10.0.10"
     openziti_router_links:
       dialers:
         - groups: ["default", "pxma"]
