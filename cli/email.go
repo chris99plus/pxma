@@ -38,18 +38,21 @@ func ListenSMTP(ctx context.Context, zitiCtx ziti.Context) {
 	for {
 		cConn, err := l.Accept()
 		if err != nil {
-			panic(err)
+			fmt.Printf("Accepting SMTP connection failed: %s\n", err)
+			return
 		}
 
 		go func() {
 			listenCtx, listenCancel := context.WithCancel(ctx)
+			defer listenCancel()
 
 			fmt.Printf("-- Accepted connection from %s for SMTP\n", cConn.RemoteAddr().String())
 			defer cConn.Close()
 
 			sConn, err := zitiCtx.Dial(SMTP_SERVICE_NAME)
 			if err != nil {
-				panic(err)
+				fmt.Printf("Cannot dial SMTP service: %s\n", err)
+				return
 			}
 			defer sConn.Close()
 
@@ -94,18 +97,21 @@ func ListenIMAP(ctx context.Context, zitiCtx ziti.Context) {
 	for {
 		cConn, err := l.Accept()
 		if err != nil {
-			panic(err)
+			fmt.Printf("Accepting IMAP connection failed: %s\n", err)
+			return
 		}
 
 		go func() {
 			listenCtx, listenCancel := context.WithCancel(ctx)
+			defer listenCancel()
 
 			fmt.Printf("-- Accepted connection from %s for IMAP\n", cConn.RemoteAddr().String())
 			defer cConn.Close()
 
 			sConn, err := zitiCtx.Dial(IMAP_SERVICE_NAME)
 			if err != nil {
-				panic(err)
+				fmt.Printf("Cannot dial IMAP service: %s\n", err)
+				return
 			}
 			defer sConn.Close()
 
@@ -179,39 +185,3 @@ func RegisterEvents(zitiCtx ziti.Context) {
 		fmt.Printf("--- Session authenticated: %s\n", as.GetIdentityName())
 	})
 }
-
-// func enrollMfa(client *edge_apis.ClientApiClient, session edge_apis.ApiSession, deleteMfa bool) {
-// 	if deleteMfa {
-// 		_, err := client.API.CurrentIdentity.DeleteMfa(current_identity.NewDeleteMfaParams(), session)
-// 		if err != nil {
-// 			fmt.Printf("ERROR deleting mfa: %s\n", err)
-// 		}
-// 	}
-//
-// 	mfa_create, err := client.API.CurrentIdentity.EnrollMfa(current_identity.NewEnrollMfaParams(), session)
-// 	if err != nil {
-// 		panic(err)
-// 	}
-//
-// 	fmt.Println(mfa_create.Payload.Data)
-//
-// 	mfa_detail, err := client.API.CurrentIdentity.DetailMfa(current_identity.NewDetailMfaParams(), session)
-// 	if err != nil {
-// 		panic(err)
-// 	}
-//
-// 	fmt.Println(mfa_detail.Payload.Data)
-//
-// 	reader := bufio.NewReader(os.Stdin)
-// 	fmt.Print("Enter code: ")
-// 	text, _ := reader.ReadString('\n')
-// 	code := strings.Trim(text, "\n")
-// 	fmt.Printf("Your entered: \"%s\"\n", code)
-//
-// 	verify, err := client.API.CurrentIdentity.VerifyMfa(current_identity.NewVerifyMfaParams().WithMfaValidation(&rest_model.MfaCode{Code: &code}), session)
-// 	if err != nil {
-// 		panic(err)
-// 	}
-//
-// 	fmt.Println(verify.Payload.Data)
-// }
